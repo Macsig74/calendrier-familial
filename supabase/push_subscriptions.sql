@@ -18,13 +18,20 @@ CREATE POLICY "allow_all_push_subscriptions"
 
 -- ═══════════════════════════════════════════════════════════════
 -- 2. Supabase Realtime — activer sur toutes les tables
+--    (DO blocks pour ignorer si déjà ajoutées)
 -- ═══════════════════════════════════════════════════════════════
-ALTER PUBLICATION supabase_realtime ADD TABLE IF EXISTS events;
-ALTER PUBLICATION supabase_realtime ADD TABLE IF EXISTS tasks;
-ALTER PUBLICATION supabase_realtime ADD TABLE IF EXISTS car_reservations;
-ALTER PUBLICATION supabase_realtime ADD TABLE IF EXISTS trips;
-ALTER PUBLICATION supabase_realtime ADD TABLE IF EXISTS users;
-ALTER PUBLICATION supabase_realtime ADD TABLE IF EXISTS cars;
+DO $$ BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE events;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE tasks;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE car_reservations;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE trips;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE users;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE cars;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 ALTER TABLE events           REPLICA IDENTITY FULL;
 ALTER TABLE tasks            REPLICA IDENTITY FULL;
