@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { CalendarEvent, Car, CarReservation, Task, Trip, User } from '@/lib/types'
 import { DEFAULT_CARS, DEFAULT_USERS } from '@/lib/constants'
 import { uid } from '@/lib/utils'
+import { supabase } from '@/lib/supabase'
 import {
   dbFetchUsers, dbInsertUser, dbUpdateUser, dbDeleteUser,
   dbFetchCars, dbInsertCar, dbUpdateCar, dbDeleteCar,
@@ -10,7 +11,17 @@ import {
   dbFetchReservations, dbInsertReservation, dbUpdateReservation, dbDeleteReservation,
   dbFetchTasks, dbInsertTask, dbUpdateTask, dbDeleteTask,
   dbFetchTrips, dbInsertTrip, dbUpdateTrip, dbDeleteTrip,
+  mapUserRow, mapCarRow, mapEventRow, mapReservationRow, mapTaskRow, mapTripRow,
 } from '@/lib/db'
+
+function sendPush(userIds: string[], title: string, body: string, url: string) {
+  if (!userIds?.length) return
+  fetch('/api/push/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userIds, title, body, url }),
+  }).catch(console.error)
+}
 
 export function useStore() {
   const [users, setUsers] = useState<User[]>([])
@@ -30,7 +41,6 @@ export function useStore() {
           dbFetchReservations(), dbFetchTasks(), dbFetchTrips(),
         ])
 
-        // Seed default users if DB is empty
         if (dbUsers.length === 0) {
           const defaults = DEFAULT_USERS.map(u => ({ ...u })) as User[]
           await Promise.all(defaults.map(dbInsertUser))
@@ -39,7 +49,6 @@ export function useStore() {
           setUsers(dbUsers)
         }
 
-        // Seed default cars if DB is empty
         if (dbCars.length === 0) {
           const defaults = DEFAULT_CARS.map(c => ({ ...c })) as Car[]
           await Promise.all(defaults.map(dbInsertCar))
@@ -59,6 +68,100 @@ export function useStore() {
       }
     }
     init()
+  }, [])
+
+  // Realtime — sync changes from other devices instantly
+  useEffect(() => {
+    const channel = supabase
+      .channel('famille-realtime')
+
+      // ── Events ──
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'events' }, ({ new: row }) => {
+        const ev = mapEventRow(row)
+        setEvents(prev => prev.some(e => e.id === ev.id) ? prev : [...prev, ev])
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'events' }, ({ new: row }) => {
+        const ev = mapEventRow(row)
+        setEvents(prev => prev.map(e => e.id === ev.id ? ev : e))
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'events' }, ({ old }) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setEvents(prev => prev.filter(e => e.id !== (old as any).id))
+      })
+
+      // ── Tasks ──
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tasks' }, ({ new: row }) => {
+        const t = mapTaskRow(row)
+        setTasks(prev => prev.some(x => x.id === t.id) ? prev : [...prev, t])
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tasks' }, ({ new: row }) => {
+        const t = mapTaskRow(row)
+        setTasks(prev => prev.map(x => x.id === t.id ? t : x))
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'tasks' }, ({ old }) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setTasks(prev => prev.filter(x => x.id !== (old as any).id))
+      })
+
+      // ── Car reservations ──
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'car_reservations' }, ({ new: row }) => {
+        const r = mapReservationRow(row)
+        setReservations(prev => prev.some(x => x.id === r.id) ? prev : [...prev, r])
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'car_reservations' }, ({ new: row }) => {
+        const r = mapReservationRow(row)
+        setReservations(prev => prev.map(x => x.id === r.id ? r : x))
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'car_reservations' }, ({ old }) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setReservations(prev => prev.filter(x => x.id !== (old as any).id))
+      })
+
+      // ── Trips ──
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'trips' }, ({ new: row }) => {
+        const t = mapTripRow(row)
+        setTrips(prev => prev.some(x => x.id === t.id) ? prev : [...prev, t])
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trips' }, ({ new: row }) => {
+        const t = mapTripRow(row)
+        setTrips(prev => prev.map(x => x.id === t.id ? t : x))
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'trips' }, ({ old }) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setTrips(prev => prev.filter(x => x.id !== (old as any).id))
+      })
+
+      // ── Users ──
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'users' }, ({ new: row }) => {
+        const u = mapUserRow(row)
+        setUsers(prev => prev.some(x => x.id === u.id) ? prev : [...prev, u])
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, ({ new: row }) => {
+        const u = mapUserRow(row)
+        setUsers(prev => prev.map(x => x.id === u.id ? u : x))
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'users' }, ({ old }) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setUsers(prev => prev.filter(x => x.id !== (old as any).id))
+      })
+
+      // ── Cars ──
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'cars' }, ({ new: row }) => {
+        const c = mapCarRow(row)
+        setCars(prev => prev.some(x => x.id === c.id) ? prev : [...prev, c])
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'cars' }, ({ new: row }) => {
+        const c = mapCarRow(row)
+        setCars(prev => prev.map(x => x.id === c.id ? c : x))
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'cars' }, ({ old }) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setCars(prev => prev.filter(x => x.id !== (old as any).id))
+      })
+
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
   }, [])
 
   // ─── Users ─────────────────────────────────────────────────────────────────
@@ -100,6 +203,10 @@ export function useStore() {
     const newEvent: CalendarEvent = { ...e, id: uid() }
     setEvents(prev => [...prev, newEvent])
     dbInsertEvent(newEvent).catch(console.error)
+
+    if (e.userIds?.length) {
+      sendPush(e.userIds, '📅 Nouvel événement', e.title, '/calendrier')
+    }
   }, [])
 
   const updateEvent = useCallback((id: string, patch: Partial<CalendarEvent>) => {
@@ -117,6 +224,10 @@ export function useStore() {
     const newRes: CarReservation = { ...r, id: uid() }
     setReservations(prev => [...prev, newRes])
     dbInsertReservation(newRes).catch(console.error)
+
+    if (r.userId) {
+      sendPush([r.userId], '🚗 Voiture réservée', `${r.destination} — ${r.date}`, '/voitures')
+    }
   }, [])
 
   const updateReservation = useCallback((id: string, patch: Partial<CarReservation>) => {
@@ -136,16 +247,7 @@ export function useStore() {
     dbInsertTask(newTask).catch(console.error)
 
     if (t.assignedUserIds?.length) {
-      fetch('/api/push/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userIds: t.assignedUserIds,
-          title: '📋 Nouvelle tâche',
-          body: t.title,
-          url: '/taches',
-        }),
-      }).catch(console.error)
+      sendPush(t.assignedUserIds, '📋 Nouvelle tâche', t.title, '/taches')
     }
   }, [])
 

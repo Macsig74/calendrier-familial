@@ -25,31 +25,45 @@ type DbTrip = {
   notes: string | null; status: string
 }
 
-// ─── Mappers ─────────────────────────────────────────────────────────────────
+// ─── Mappers (exported for realtime use) ─────────────────────────────────────
 
-const mapUser  = (r: DbUser): User  => ({ id: r.id, name: r.name, color: r.color, emoji: r.emoji, canDrive: r.can_drive })
-const mapCar   = (r: DbCar):  Car   => ({ id: r.id, name: r.name, model: r.model, color: r.color, emoji: r.emoji })
-const mapEvent = (r: DbEvent): CalendarEvent => ({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const mapUserRow  = (r: any): User  => ({ id: r.id, name: r.name, color: r.color, emoji: r.emoji, canDrive: r.can_drive })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const mapCarRow   = (r: any): Car   => ({ id: r.id, name: r.name, model: r.model, color: r.color, emoji: r.emoji })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const mapEventRow = (r: any): CalendarEvent => ({
   id: r.id, title: r.title, category: r.category as CalendarEvent['category'],
   date: r.date, startTime: r.start_time ?? undefined, endTime: r.end_time ?? undefined,
   userIds: r.user_ids, weekType: r.week_type as CalendarEvent['weekType'],
   notification: r.notification, notes: r.notes ?? undefined,
 })
-const mapReservation = (r: DbReservation): CarReservation => ({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const mapReservationRow = (r: any): CarReservation => ({
   id: r.id, carId: r.car_id, userId: r.user_id, date: r.date,
   returnDate: r.return_date ?? undefined, destination: r.destination, notes: r.notes ?? undefined,
 })
-const mapTask = (r: DbTask): Task => ({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const mapTaskRow = (r: any): Task => ({
   id: r.id, title: r.title, assignedUserIds: r.assigned_user_ids,
   completedByUserId: r.completed_by_user_id ?? undefined, completedAt: r.completed_at ?? undefined,
   status: r.status as Task['status'], date: r.date,
   category: r.category as Task['category'] ?? undefined, notes: r.notes ?? undefined,
 })
-const mapTrip = (r: DbTrip): Trip => ({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const mapTripRow = (r: any): Trip => ({
   id: r.id, destination: r.destination, days: r.days, flightType: r.flight_type as Trip['flightType'],
   startDate: r.start_date, endDate: r.end_date, userIds: r.user_ids,
   notes: r.notes ?? undefined, status: r.status as Trip['status'],
 })
+
+// Internal aliases
+const mapUser        = mapUserRow
+const mapCar         = mapCarRow
+const mapEvent       = mapEventRow
+const mapReservation = mapReservationRow
+const mapTask        = mapTaskRow
+const mapTrip        = mapTripRow
 
 // ─── Users ───────────────────────────────────────────────────────────────────
 
