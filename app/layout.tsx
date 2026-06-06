@@ -1,26 +1,43 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Geist } from 'next/font/google'
 import './globals.css'
-import { StoreProvider } from '@/hooks/StoreContext'
-import Sidebar from '@/components/layout/Sidebar'
+import { AuthProvider } from '@/hooks/useAuth'
+import AppShell from '@/components/AppShell'
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist-sans' })
 
 export const metadata: Metadata = {
   title: 'Famille — Organisateur',
   description: 'Calendrier familial, voitures, tâches et voyages',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Famille',
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: '#1e293b',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className={`${geist.variable} h-full antialiased`}>
+      <head>
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+        <meta name="mobile-web-app-capable" content="yes" />
+      </head>
       <body className="h-full bg-slate-50">
-        <StoreProvider>
-          <Sidebar />
-          <div className="ml-16 md:ml-56 min-h-screen flex flex-col">
+        <AuthProvider>
+          <AppShell>
             {children}
-          </div>
-        </StoreProvider>
+          </AppShell>
+        </AuthProvider>
       </body>
     </html>
   )

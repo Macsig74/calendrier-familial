@@ -134,6 +134,19 @@ export function useStore() {
     const newTask: Task = { ...t, id: uid() }
     setTasks(prev => [...prev, newTask])
     dbInsertTask(newTask).catch(console.error)
+
+    if (t.assignedUserIds?.length) {
+      fetch('/api/push/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userIds: t.assignedUserIds,
+          title: '📋 Nouvelle tâche',
+          body: t.title,
+          url: '/taches',
+        }),
+      }).catch(console.error)
+    }
   }, [])
 
   const updateTask = useCallback((id: string, patch: Partial<Task>) => {

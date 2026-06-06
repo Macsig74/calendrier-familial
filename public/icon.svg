@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="100" fill="#1e293b"/>
+  <!-- House roof -->
+  <polygon points="256,100 90,260 140,260 140,400 220,400 220,310 292,310 292,400 372,400 372,260 422,260" fill="white" opacity="0.95"/>
+  <!-- Calendar dots -->
+  <circle cx="185" cy="355" r="14" fill="#3b82f6"/>
+  <circle cx="256" cy="355" r="14" fill="#3b82f6"/>
+  <circle cx="327" cy="355" r="14" fill="#3b82f6"/>
+</svg>

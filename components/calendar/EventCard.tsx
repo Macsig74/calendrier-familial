@@ -61,6 +61,11 @@ export default function EventCard({ event, compact = false, onClick }: Props) {
 
   useEffect(() => { setMounted(true) }, [])
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onClick()
+  }
+
   const handleMouseEnter = (e: React.MouseEvent) => setPos({ x: e.clientX, y: e.clientY })
   const handleMouseMove  = (e: React.MouseEvent) => setPos({ x: e.clientX, y: e.clientY })
   const handleMouseLeave = () => setPos(null)
@@ -71,7 +76,7 @@ export default function EventCard({ event, compact = false, onClick }: Props) {
     return (
       <>
         <div
-          onClick={onClick}
+          onClick={handleClick}
           {...hoverProps}
           className={`px-1.5 py-0.5 rounded text-xs font-medium truncate cursor-pointer hover:opacity-80 transition-opacity border ${cat.color} ${cat.textColor} ${cat.borderColor}`}
         >
@@ -87,7 +92,7 @@ export default function EventCard({ event, compact = false, onClick }: Props) {
   return (
     <>
       <div
-        onClick={onClick}
+        onClick={handleClick}
         {...hoverProps}
         className={`px-2.5 py-2 rounded-xl border cursor-pointer hover:shadow-sm transition-all ${cat.color} ${cat.borderColor}`}
       >
