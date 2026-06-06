@@ -1,8 +1,8 @@
 'use client'
 import { useState, useMemo } from 'react'
-import { format, parseISO, isToday, isFuture } from 'date-fns'
+import { format, parseISO, isToday } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Plus, CheckCircle2, Circle, Clock, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, CheckCircle2, Circle, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import Modal from '@/components/ui/Modal'
 import CategoryBadge from '@/components/ui/Badge'
@@ -107,22 +107,14 @@ function TaskForm({ onSave, onClose, initial }: {
   )
 }
 
-const STATUS_CYCLE: Record<Task['status'], Task['status']> = {
-  pending: 'in_progress',
-  in_progress: 'done',
-  done: 'pending',
-}
-
 const STATUS_ICON = {
   pending: <Circle size={18} className="text-slate-400" />,
-  in_progress: <Clock size={18} className="text-orange-500" />,
   done: <CheckCircle2 size={18} className="text-green-500" />,
 }
 
 export default function TachesPage() {
   const { tasks, users, addTask, updateTask, deleteTask } = useAppStore()
   const [modalOpen, setModalOpen] = useState(false)
-  const [filterStatus, setFilterStatus] = useState<Task['status'] | 'all'>('all')
   const [showDone, setShowDone] = useState(false)
 
   const active = useMemo(() =>
@@ -147,7 +139,7 @@ export default function TachesPage() {
     <div className={`flex items-center gap-3 p-3 rounded-xl border bg-white transition-all ${
       task.status === 'done' ? 'opacity-60 border-slate-100' : 'border-slate-200 shadow-sm'
     }`}>
-      <button onClick={() => updateTask(task.id, { status: STATUS_CYCLE[task.status] })} className="shrink-0">
+      <button onClick={() => updateTask(task.id, { status: task.status === 'done' ? 'pending' : 'done' })} className="shrink-0">
         {STATUS_ICON[task.status]}
       </button>
       <div className="flex-1 min-w-0">
@@ -174,10 +166,9 @@ export default function TachesPage() {
 
       <div className="flex-1 p-4 max-w-2xl mx-auto w-full">
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-2 gap-3 mb-6">
           {[
             { label: 'À faire', count: tasks.filter(t => t.status === 'pending').length, color: 'text-slate-600', bg: 'bg-slate-50' },
-            { label: 'En cours', count: tasks.filter(t => t.status === 'in_progress').length, color: 'text-orange-600', bg: 'bg-orange-50' },
             { label: 'Terminées', count: tasks.filter(t => t.status === 'done').length, color: 'text-green-600', bg: 'bg-green-50' },
           ].map(s => (
             <div key={s.label} className={`${s.bg} rounded-xl p-3 text-center border border-white`}>

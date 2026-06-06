@@ -59,7 +59,7 @@ export interface Task {
   assignedUserIds: string[]
   completedByUserId?: string
   completedAt?: string
-  status: 'pending' | 'in_progress' | 'done'
+  status: 'pending' | 'done'
   date: string // YYYY-MM-DD
   category?: CategoryId
   notes?: string
