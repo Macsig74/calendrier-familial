@@ -11,25 +11,24 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
 
 ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "allow_all_push_subscriptions" ON push_subscriptions;
 CREATE POLICY "allow_all_push_subscriptions"
   ON push_subscriptions FOR ALL
   USING (true) WITH CHECK (true);
 
 -- ═══════════════════════════════════════════════════════════════
 -- 2. Supabase Realtime — activer sur toutes les tables
---    (sync temps réel entre appareils)
 -- ═══════════════════════════════════════════════════════════════
-ALTER PUBLICATION supabase_realtime ADD TABLE events;
-ALTER PUBLICATION supabase_realtime ADD TABLE tasks;
-ALTER PUBLICATION supabase_realtime ADD TABLE car_reservations;
-ALTER PUBLICATION supabase_realtime ADD TABLE trips;
-ALTER PUBLICATION supabase_realtime ADD TABLE users;
-ALTER PUBLICATION supabase_realtime ADD TABLE cars;
+ALTER PUBLICATION supabase_realtime ADD TABLE IF EXISTS events;
+ALTER PUBLICATION supabase_realtime ADD TABLE IF EXISTS tasks;
+ALTER PUBLICATION supabase_realtime ADD TABLE IF EXISTS car_reservations;
+ALTER PUBLICATION supabase_realtime ADD TABLE IF EXISTS trips;
+ALTER PUBLICATION supabase_realtime ADD TABLE IF EXISTS users;
+ALTER PUBLICATION supabase_realtime ADD TABLE IF EXISTS cars;
 
--- REPLICA IDENTITY FULL pour avoir les anciennes valeurs sur DELETE/UPDATE
-ALTER TABLE events          REPLICA IDENTITY FULL;
-ALTER TABLE tasks           REPLICA IDENTITY FULL;
+ALTER TABLE events           REPLICA IDENTITY FULL;
+ALTER TABLE tasks            REPLICA IDENTITY FULL;
 ALTER TABLE car_reservations REPLICA IDENTITY FULL;
-ALTER TABLE trips           REPLICA IDENTITY FULL;
-ALTER TABLE users           REPLICA IDENTITY FULL;
-ALTER TABLE cars            REPLICA IDENTITY FULL;
+ALTER TABLE trips            REPLICA IDENTITY FULL;
+ALTER TABLE users            REPLICA IDENTITY FULL;
+ALTER TABLE cars             REPLICA IDENTITY FULL;
